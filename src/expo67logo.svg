@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- drawn by Useddenim -->
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="-705 -705 1410 1410">
+<title>expo 67 logo</title>
+ <clipPath id="octagon">
+  <path d="M 705,292 L 292,705 H -292 L -705,292 V -292 L -292,-705 H 292 L 705,-292 Z" />
+ </clipPath>
+ <g stroke="darkblue" stroke-width="35" fill="none" clip-path="url(#octagon)">
+  <path d="M -70,-380 V -705 L 70,-530 200,-690 M 70,-380 V -705 L -70,-530 -200,-690" />
+  <path d="M 380,-70 H 705 L 530,70 690,200 M 380,70 H 705 L 530,-70 690,-200" />
+  <path d="M -70,380 V 705 L 70,530 200,690 M 70,380 V 705 L -70,530 -200,690" />
+  <path d="M -380,-70 H -705 L -530,70 -690,200 M -380,70 H -705 L -530,-70 -690,-200" />
+  <g transform="rotate(45)">
+   <path d="M -70,-380 V -705 L 70,-530 200,-690 M 70,-380 V -705 L -70,-530 -200,-690" />
+   <path d="M 380,-70 H 705 L 530,70 690,200 M 380,70 H 705 L 530,-70 690,-200" />
+   <path d="M -70,380 V 705 L 70,530 200,690 M 70,380 V 705 L -70,530 -200,690" />
+   <path d="M -380,-70 H -705 L -530,70 -690,200 M -380,70 H -705 L -530,-70 -690,-200" />
+  </g>
+ </g>
+</svg>

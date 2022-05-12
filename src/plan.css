@@ -1,0 +1,126 @@
+.ol-control button {
+  background-color: rgba(0,60,136, 1.0) !important;
+}
+
+.ol-control button:hover,
+.ol-control button:focus {
+  background-color: rgba(0,60,136,1.0) !important;
+}
+
+.map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-image: url(expo67logo.svg);
+  background-size: 100% 100%;
+  background-color: lightgrey;
+  touch-action: none;
+}
+
+.rotate {
+  right: .5em;
+  top: 3em;
+}
+
+.labels-control {
+  right: .5em;
+  bottom: calc(50% + .3em);
+  margin: auto 0;
+}
+
+.labels-control button {
+  background-image: url(signpost.svg);
+  background-size: 60% 60%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.you-are-here-control {
+  right: .5em;
+  top: calc(50% + .3em);;
+  margin: auto 0;
+}
+
+.you-are-here-control button {
+  background-image: url(currentLocation.svg);
+  background-size: 60% 60%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.opacity-slider {
+  position: absolute;
+  display: flex;
+  left: 0;
+  right: 0;
+  bottom: .75em;
+  margin: 0 auto;
+  width: 70%;
+  max-width: 400px;
+  background-color: rgba(0,60,136,1.0);
+  background-clip: padding-box;
+  padding: 4px;
+  border: 3px solid rgba(255,255,255,0.4);
+  border-radius: 2px;
+}
+
+.opacity-slider span {
+  color: white;
+}
+
+.opacity-slider > input[type="range"] {
+  flex-grow: 1;
+}
+
+.you-are-here {
+  position: absolute;
+  height: 2.5em;
+  width: 2.5em;
+  border: 2px black solid;
+  border-radius: 50%;
+  background-color: white;
+  background-image: url(expo67logo.svg);
+  background-size: 2em;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.status-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 5px;
+  background-color: white;
+  border: 2px black solid;
+}
+
+.status-box .close-button {
+  position: relative;
+  right: 0px;
+  height: 1.375em;
+  width: 1.375em;
+  padding: 0px;
+  left: calc(100% - 1.375em);
+
+}
+
+.help-dialog{
+  position: absolute;
+  overflow-y: auto;
+  top: 50%;
+  left: 50%;
+  padding: 10px;
+  max-width: 300px;
+  max-height: 80%;
+  background-color: white;
+  transform: translate(-50%, -50%);
+}
+
+.zoom {
+  right: .5em;
+  bottom: 2.50em;
+}
+
