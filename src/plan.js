@@ -51,10 +51,10 @@ var map = new Map({
 
 map.addLayer(new TileLayer({
   source: new XYZ({
-     url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-    //url: 'tuiles/satellite/{z}/{y}_{x}.jpg'
+    // url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+    url: 'tuiles/satellite/{z}/{y}_{x}.jpg'
   }),
-  //extent: planBounds
+  extent: planBounds
 }));
 
 const expo67Layer = new TileLayer({

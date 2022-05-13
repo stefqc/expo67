@@ -78,8 +78,8 @@ class YouAreHere extends Control {
     let position = this.geolocation_.getPosition();
     const accuracy = this.geolocation_.getAccuracy();
     position = this.filter_.process(position[1], position[0], accuracy, Date.now());
-    //const inExtent = this.extent_ ? containsCoordinate(this.extent_, position) : true;
-    const inExtent =  chezmoi.intersectsCoordinate(position);
+    const inExtent = this.extent_ ? containsCoordinate(this.extent_, position) : true;
+    //const inExtent =  chezmoi.intersectsCoordinate(position);
 
     switch (this.state_) {
       case WAITING:
