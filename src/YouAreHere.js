@@ -5,19 +5,12 @@ import Overlay from 'ol/Overlay';
 import {CLASS_CONTROL, CLASS_HIDDEN, CLASS_UNSELECTABLE} from 'ol/css.js';
 import {containsCoordinate} from 'ol/extent';
 import Polygon from 'ol/geom/Polygon';
-import addInfoBox from './infoBox.js';
+import {getDistance} from  'ol/sphere';
+import {toLonLat} from 'ol/proj';
 
 const OFF = 0;
 const WAITING = 1;
 const TRACKING = 2;
-
-const chezmoi = new Polygon([[ 
-  [-8188174,5703058],
-  [-8188085,5703189],
-  [-8187814,5703014],
-  [-8187907,5702873],
-  [-8188174,5703058]]]);
-
 
 class YouAreHere extends Control {
 
@@ -47,7 +40,6 @@ class YouAreHere extends Control {
     element.className = cssClasses;
     element.appendChild(button);
 
-    this.infoBox_ = undefined;
 
     this.overlay_= new Overlay({
       element: document.createElement('div'),
@@ -56,135 +48,214 @@ class YouAreHere extends Control {
       stopEvent: false
     });
     this.geolocation_ = new Geolocation({
-      trackingOptions: { enableHighAccuracy: true}
+      trackingOptions: { enableHighAccuracy: true, maximumAge: 0}
     });
     this.geolocation_.on('change:position', this.handlePositionChange_.bind(this))
     this.geolocation_.on('error', this.handlePositionError_.bind(this));
 
-    this.filter_ = undefined;
+    this.dlg_ = new GpsStatusDlg(this.handleDlgResult_.bind(this)) ;
+
+    document.addEventListener('visibilitychange', this.handleVisibilityChange_.bind(this));
+
+    // Lorsque la gólocalisation est activée, le centre de la carte est 
+    // mise à jour à chaque nouvelle position. Cependant si l'utilisateur
+    // manipule la carte, on continue de mettre à jour la position, mais
+    // on ne recentre pas pour ne pas causer de confusion. 
+    this.updateViewCenter = false;
+
+    // La première position retournée lorsque le GPS démarre est parfois la
+    // dernière position générée lorsque la GPS s'est arrêté. Cette variable
+    // permet de rejeter la première position retournée.
+    this.isFirstPosition_ = true; 
 
     this.state_ = OFF;
-    document.addEventListener('visibilitychange', this.handleVisibilityChange_.bind(this));
 
   }
 
   setMap(map) {
     super.setMap(map);
-    this.infoBox_ = addInfoBox(map);
+    map.addControl(this.dlg_)
+    map.on('movestart', this.handleMapMovestart_.bind(this));
+    map.once('rendercomplete',
+      () => { if (sessionStorage.getItem('GpsOn')) { 
+        this.startTracking_();
+        }
+      }
+    );
+  }
+
+  startTracking_() {
+    this.dlg_.show();
+    this.isFirstPosition_ = true;
+    this.updateViewCenter_ = true;
+    sessionStorage.setItem('GpsOn', 'true');
+    this.geolocation_.setProjection(this.getMap().getView().getProjection())
+    this.geolocation_.setTracking(true);
+    this.state_ = WAITING;
+
+  }
+
+  stopTracking_() {
+    this.geolocation_.setTracking(false);
+    sessionStorage.removeItem('GpsOn');
+    this.getMap().removeOverlay(this.overlay_);
+    this.state_ = OFF;
   }
 
   handlePositionChange_() {
 
-    let position = this.geolocation_.getPosition();
+    const map = this.getMap()
+    const view = map.getView();
+    const position = this.geolocation_.getPosition();
     const accuracy = this.geolocation_.getAccuracy();
-    position = this.filter_.process(position[1], position[0], accuracy, Date.now());
     const inExtent = this.extent_ ? containsCoordinate(this.extent_, position) : true;
-    //const inExtent =  chezmoi.intersectsCoordinate(position);
 
     switch (this.state_) {
       case WAITING:
-        if (inExtent) {
-          const map = this.getMap();
-          this.infoBox_.hide();
-          this.overlay_.setPosition(position);
-          map.addOverlay(this.overlay_);
-          map.getView().animate({center:position});
-          this.state_ = TRACKING;
+        if (this.isFirstPostion_) {
+          this.isFirstPosition_ = false;
         } else {
-          this.geolocation_.setTracking(false);
-          this.infoBox_.setText('Géolocalisation disponible seulement sur le site d\'expo');
-          this.state_ = OFF;
+
+          if (inExtent && accuracy < 20) {
+            this.dlg_.hide();
+            this.overlay_.setPosition(position);
+            map.addOverlay(this.overlay_);
+            view.animate({center:position});
+            this.state_ = TRACKING;
+          }
         }
         break;
+
       case TRACKING:
-        if(inExtent) {
+        if (inExtent) {
           this.overlay_.setPosition(position);
-
+          const distance = getDistance(toLonLat(position),
+            toLonLat(view.getCenter()));
+          if (this.updateViewCenter_ && distance > 7.5 && !view.getAnimating()) {
+            view.animate({center:position})
+          }
         } else {
-          this.geolocation_.setTracking(false);
-          this.infoBox_.setText('Au revoir');
-          this.getMap().removeOverlay(this.overlay_);
-          this.state_ = OFF;
+          this.stopTracking_();
         }
+
         break;
-
     }
-
   }
 
   handlePositionError_(error) {
-    this.geolocation_.setTracking(false);
-    this.infoBox_.setText(error.message);
-    this.state_ = OFF
-
+    this.stopTracking_();
+    this.dlg_.show(error.message);
   }
 
   handleClick_(event) {
-    const map = this.getMap();
-
     switch (this.state_) {
       case OFF:
-        this.infoBox_.setText('En attente');
-        this.geolocation_.setProjection(map.getView().getProjection());
-        this.filter_ = new GPSKalmanFilter();
-        this.state_ = WAITING;
-        this.geolocation_.setTracking(true);
+        this.startTracking_();
         break;
       case TRACKING:
-        map.getView().animate({center:this.overlay_.getPosition()});
-
+        if (this.updateViewCenter_ == false) {
+          this.updateViewCenter_ = true;
+          this.getMap().getView().animate({center:this.overlay_.getPosition()});
+        } else {
+          this.stopTracking_();
+        }
         break;
       default:
 
+    }
+  }
 
+  handleMapMovestart_() {
+
+    if (this.state_ == TRACKING && this.getMap().getView().getInteracting()) {
+      this.updateViewCenter_ = false;
     }
   }
 
   handleVisibilityChange_(event) {
     if (document.visibilityState == 'hidden' && this.state_ != OFF) {
-      this.geolocation_.setTracking(false);
       this.getMap().removeOverlay(this.overlay_);
-      this.state_ = WAITING;
-    } else if (document.visibilityState == 'visible' && this.state_ == WAITING) {
-      this.filter_ = new GPSKalmanFilter();
-      this.geolocation_.setTracking(true);
+    } else if (document.visibilityState == 'visible' && this.state_ != OFF) {
+      this.startTracking_();
     }
+  }
 
+  handleDlgResult_() {
+    this.stopTracking_();
   }
 }
 
-//  https://stackoverflow.com/questions/1134579/smooth-gps-data
-class GPSKalmanFilter {
-  constructor (decay = 3) {
-    this.decay = decay
-    this.variance = -1
-    this.minAccuracy = 1
+
+class GpsStatusDlg extends Control {
+
+  constructor(callback) {
+    super({
+      element: document.createElement('div')
+    });
+    
+    this.element.className = 'dialog-box ' + CLASS_UNSELECTABLE ; 
+    this.element.style.display = 'none';
+    this.msg_ = document.createElement('p');
+
+    this.cancelBtn_ = document.createElement('button');
+    this.cancelBtn_.setAttribute('type', 'button');
+    this.cancelBtn_.textContent = 'Annuler';
+    this.cancelBtn_.addEventListener('click', this.cancelBtnClickHandler_.bind(this));
+
+    this.element.appendChild(this.msg_);
+    this.element.appendChild(this.cancelBtn_);
+
+
+    this.callback_ = callback;;
+    this.intervalId_ = undefined;
+    this.remainingSeconds_ = undefined;
+
   }
 
-  process (lat, lng, accuracy, timestampInMs) {
-    if (accuracy < this.minAccuracy) accuracy = this.minAccuracy
+  show(msg) {
+    this.remainingSeconds_ = 20;
 
-    if (this.variance < 0) {
-      this.timestampInMs = timestampInMs
-      this.lat = lat
-      this.lng = lng
-      this.variance = accuracy * accuracy
+    if (this.intervalId_) {
+      clearTimeout(this.intervalId_)
+      this.intervalId_ = undefined;
+    }
+    if (msg) {
+      this.msg_.innerHTML = msg;
     } else {
-      const timeIncMs = timestampInMs - this.timestampInMs
-
-      if (timeIncMs > 0) {
-        this.variance += (timeIncMs * this.decay * this.decay) / 1000
-        this.timestampInMs = timestampInMs
-      }
-
-      const _k = this.variance / (this.variance + (accuracy * accuracy))
-      this.lat += _k * (lat - this.lat)
-      this.lng += _k * (lng - this.lng)
-
-      this.variance = (1 - _k) * this.variance
+      this.intervalId_ = setInterval(this.intervalHandler_.bind(this), 1000);
+      this.msg_.innerHTML = 'Géolocalisation en cours... ' + this.remainingSeconds_ + 's';
     }
 
-    return [this.lng, this.lat]
+    this.element.style.display = 'block';
   }
+
+  hide() {
+    clearTimeout(this.intervalId_);
+    this.intervalId_ = undefined;
+    this.element.style.display = 'none';
+  }
+ 
+  cancelBtnClickHandler_() {
+    this.hide();
+    this.callback_();
+  }
+
+  intervalHandler_() {
+    this.remainingSeconds_--;
+    if (this.remainingSeconds_ > 0) {
+      this.msg_.innerHTML = 'Géolocalisation en cours... ' + this.remainingSeconds_ + 's';
+    } else {
+      this.msg_.innerHTML = 'La géolocalisation a échouée.<ul>' +
+        '<li>Êtes-vous bien au parc Jean Drapeau?</li>' +
+        '<li>Votre appareil est-il équipé d\'un GPS?</li>' +
+        '<li>Êtes-vous à l\'extérieur?</li>' +
+        '<li>Réessayez de nouveau, parfois c\'est plus long.</li></ul>';
+      clearTimeout(this.intervalId_);
+      this.intervalId_ = undefined;
+      this.callback_();
+    }
+  }
+
 }
+
 export default YouAreHere;
