@@ -1,5 +1,7 @@
 .ol-control button {
   background-color: rgba(0,60,136, 1.0) !important;
+  height: 33px;
+  width: 33px;
 }
 
 .ol-control button:hover,
@@ -19,14 +21,14 @@
   touch-action: none;
 }
 
-.rotate {
-  right: .5em;
-  top: 3em;
-}
+.fullscreen {
+  left: 8px;
+  top: 10px;
+} 
 
 .labels-control {
-  right: .5em;
-  bottom: calc(50% + .3em);
+  left: 8px;
+  top: 53px;
   margin: auto 0;
 }
 
@@ -38,8 +40,8 @@
 }
 
 .you-are-here-control {
-  right: .5em;
-  top: calc(50% + .3em);;
+  left: 8px;
+  top: 96px;
   margin: auto 0;
 }
 
@@ -48,6 +50,24 @@
   background-size: 60% 60%;
   background-repeat: no-repeat;
   background-position: center;
+}
+
+.you-are-here {
+  position: absolute;
+  height: 2.5em;
+  width: 2.5em;
+  border: 2px black solid;
+  border-radius: 50%;
+  background-color: white;
+  background-image: url(expo67logo.svg);
+  background-size: 2em;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.zoom {
+  left: 8px;
+  top: 139px;
 }
 
 .opacity-slider {
@@ -74,53 +94,22 @@
   flex-grow: 1;
 }
 
-.you-are-here {
-  position: absolute;
-  height: 2.5em;
-  width: 2.5em;
-  border: 2px black solid;
-  border-radius: 50%;
-  background-color: white;
-  background-image: url(expo67logo.svg);
-  background-size: 2em;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.status-box {
+.dialog-box {
+  display: none;
   position: absolute;
   top: 50%;
   left: 50%;
+  width: 50%;
   transform: translate(-50%, -50%);
-  padding: 5px;
-  background-color: white;
-  border: 2px black solid;
-}
-
-.status-box .close-button {
-  position: relative;
-  right: 0px;
-  height: 1.375em;
-  width: 1.375em;
-  padding: 0px;
-  left: calc(100% - 1.375em);
-
-}
-
-.help-dialog{
-  position: absolute;
-  overflow-y: auto;
-  top: 50%;
-  left: 50%;
   padding: 10px;
-  max-width: 300px;
-  max-height: 80%;
   background-color: white;
-  transform: translate(-50%, -50%);
+  border: 2px black solid;
 }
 
-.zoom {
-  right: .5em;
-  bottom: 2.50em;
+.dialog-box button {
+  float:right;
 }
+
+
+
 

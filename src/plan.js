@@ -24,12 +24,13 @@ const controls = defaultControls({
     zoomOutTipLabel: 'Zoom arrière'
   }
 }).extend([
-  new FullScreen({tipLabel: 'Plein écran'}),
+  new FullScreen({className: 'fullscreen', tipLabel: 'Plein écran'}),
 ]);
 
 const interactions = defaultInteractions({
   altShiftDragRotate: false,
-  pinchRotate: false
+  pinchRotate: false,
+  doubleClickZoom: false
 });
 
 var map = new Map({
@@ -48,10 +49,8 @@ var map = new Map({
   keyboardEventTarget: document
 });
 
-
 map.addLayer(new TileLayer({
   source: new XYZ({
-    // url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
     url: 'tuiles/satellite/{z}/{y}_{x}.jpg'
   }),
   extent: planBounds
